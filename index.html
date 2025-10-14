@@ -1,0 +1,314 @@
+# Re-run with the syntax error fixed (remove the stray backslashes in f-string)
+import pandas as pd
+import numpy as np
+from pathlib import Path
+import html, shutil
+
+src = "/mnt/data/20251014_viz_processed.xlsx"
+out_dir = Path("/mnt/data/vitamin_a_campaign_site_threshold")
+out_dir.mkdir(exist_ok=True)
+
+vita = pd.read_excel(src, sheet_name="Vita_Merged")
+dewo = pd.read_excel(src, sheet_name="Deworm_Merged")
+muac = pd.read_excel(src, sheet_name="MUAC_Merged")
+overall = pd.read_excel(src, sheet_name="Overall_Coverage")
+
+def to_num(x):
+    try:
+        return float(x)
+    except Exception:
+        return np.nan
+
+def getcol(df, *names):
+    for n in names:
+        for c in df.columns:
+            if c.lower() == n.lower():
+                return c
+    for n in names:
+        for c in df.columns:
+            if n.lower() in c.lower():
+                return c
+    return None
+
+def normalize_common(df):
+    df2 = df.copy()
+    st = getcol(df2, "State","state","Province")
+    if st and st != "State": df2 = df2.rename(columns={st:"State"})
+    ct = getcol(df2, "county","County")
+    if ct and ct != "county": df2 = df2.rename(columns={ct:"county"})
+    return df2
+
+vita = normalize_common(vita)
+dewo = normalize_common(dewo)
+muac = normalize_common(muac)
+
+overall_map = {str(r["Metric"]).strip(): to_num(r["OverallCoverage(%)"]) for _, r in overall.iterrows()}
+
+def heat_thresh(v):
+    if v is None or np.isnan(v):
+        return ("", "#0b1b2b")
+    v = float(v)
+    if v < 50:
+        l = 96 - (min(max(v,0),50)/50.0)*36
+        bg = f"hsl(5, 75%, {l:.1f}%)"
+        fg = "white" if l < 72 else "#0b1b2b"
+    elif v < 80:
+        t = (v-50)/30.0
+        l = 96 - t*41
+        bg = f"hsl(48, 85%, {l:.1f}%)"
+        fg = "#0b1b2b" if l > 70 else "#2b1b0b"
+    else:
+        t = (min(v,100)-80)/20.0
+        l = 92 - t*47
+        bg = f"hsl(140, 60%, {l:.1f}%)"
+        fg = "white" if l < 70 else "#0b1b2b"
+    return (bg, fg)
+
+def fmt_int(x):
+    if x is None or np.isnan(x):
+        return ""
+    return f"{int(round(float(x))):,}"
+
+def fmt_pct(x):
+    if x is None or np.isnan(x):
+        return ""
+    return f"{float(x):.1f}%"
+
+def build_table_html(df, columns, caption=None):
+    df2 = df.copy()
+    df2 = df2.sort_values(by=[c for c in ["State","county"] if c in df2.columns])
+    thead = "<thead><tr>" + "".join(f"<th>{html.escape(c['label'])}</th>" for c in columns) + "</tr></thead>"
+    body = []
+    for _, row in df2.iterrows():
+        tds = []
+        for col in columns:
+            key = col["key"]
+            fmt = col.get("fmt","text")
+            heat = col.get("heat", False)
+            val = row.get(key, np.nan)
+            style = ""
+            txt = ""
+            cls = "num" if fmt in ("num","pct") else ""
+            if fmt == "num":
+                txt = fmt_int(to_num(val))
+            elif fmt == "pct":
+                v = to_num(val)
+                txt = fmt_pct(v)
+                if heat and v==v:
+                    bg, fg = heat_thresh(v)
+                    style = f" style='background:{bg};color:{fg};'"
+            else:
+                txt = "" if pd.isna(val) else str(val)
+            tds.append(f"<td class='{cls}'{style}>{html.escape(txt)}</td>")
+        body.append("<tr>" + "".join(tds) + "</tr>")
+    tbody = "<tbody>" + "".join(body) + "</tbody>"
+    cap = f"<caption>{html.escape(caption)}</caption>" if caption else ""
+    return f"<table>{cap}{thead}{tbody}</table>"
+
+CSS = """
+:root{
+  --unicef-blue:#00ADEF; --ink:#0b1b2b; --muted:#648199; --card:#ffffff;
+  --shadow:0 10px 30px rgba(0,0,0,.06); --border:#e6f1f8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;
+  color:var(--ink);
+  background: radial-gradient(1200px 600px at 50% -200px, #7cd7f7 0%, #2fbceb 35%, var(--unicef-blue) 60%, #e9f6ff 60%, #ffffff 100%);
+  background-attachment: fixed;
+}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{position:sticky;top:0;z-index:50;background:linear-gradient(90deg, var(--unicef-blue), #0088bb);color:white;box-shadow:var(--shadow)}
+.nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.brand{font-weight:800;letter-spacing:.2px;font-size:18px;padding:10px 0}
+.nav a{color:white;text-decoration:none;padding:8px 12px;border-radius:999px;opacity:.95}
+.nav a:hover{background:rgba(255,255,255,.16)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+h1{font-size:28px;margin:10px 0 6px}
+h2{font-size:22px;margin:12px 0 6px}
+.lead{color:var(--muted)}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.badge{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid #d7eef9;box-shadow:var(--shadow)}
+.tableWrap{overflow:auto;border:1px solid var(--border);border-radius:12px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+caption{caption-side:top;text-align:left;padding:8px 12px;color:var(--muted)}
+thead th{position:sticky;top:0;background:#f5fbff;color:#003a54;border-bottom:1px solid #dcecf7;font-weight:700}
+th,td{padding:6px 8px;text-align:left;white-space:nowrap}
+tbody tr:nth-child(odd){background:#fbfdff}
+tbody tr:hover{background:#f0f8ff}
+.num{font-variant-numeric:tabular-nums}
+.footer{margin-top:30px;padding:18px 0;background:linear-gradient(90deg, #0088bb, var(--unicef-blue));color:white}
+.footer a{color:white}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.kpi{background:#fff;border:1px solid #d7eef9;border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center}
+.kpi .value{min-width:86px;text-align:center;font-weight:800;border-radius:10px;padding:8px 10px}
+.legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.legend .chip{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid #e6e6e6;background:#fff}
+.legend .swatch{width:16px;height:16px;border-radius:4px;border:1px solid #ddd}
+"""
+
+NAV = """
+<header>
+  <div class="container nav">
+    <div class="brand">UNICEF · Vitamin A Campaign</div>
+    <nav style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+      <a href="index.html">About</a>
+      <a href="vitamin-a.html">Vitamin A</a>
+      <a href="deworming.html">Deworming</a>
+      <a href="muac.html">MUAC Screening</a>
+    </nav>
+  </div>
+</header>
+"""
+
+def kpi_card(label, value_pct):
+    bg, fg = heat_thresh(value_pct if value_pct is not None and not np.isnan(value_pct) else None)
+    valtxt = "" if value_pct is None or np.isnan(value_pct) else f"{value_pct:.1f}%"
+    return f"""
+      <div class="kpi">
+        <div>
+          <div style="font-weight:700">{html.escape(label)}</div>
+          <div class="lead" style="font-size:12px">Overall coverage</div>
+        </div>
+        <div class="value" style="background:{bg};color:{fg};box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)">{valtxt}</div>
+      </div>
+    """
+
+def page_shell(title, body_html):
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>{html.escape(title)}</title>
+<style>{CSS}</style>
+</head>
+<body>
+{NAV}
+<main class="container">
+{body_html}
+</main>
+<footer class="footer">
+  <div class="container" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+    <div><strong>UNICEF · South Sudan</strong> — Vitamin A Campaign</div>
+    <div class="lead" style="font-size:12px">Data workbook: <a href="sandbox:/mnt/data/20251014_viz_processed.xlsx">download</a></div>
+  </div>
+</footer>
+</body></html>"""
+
+legend_html = """
+<div class="legend">
+  <div class="chip"><span class="swatch" style="background:hsl(5,75%,70%)"></span><strong>&lt; 50%</strong></div>
+  <div class="chip"><span class="swatch" style="background:hsl(48,85%,70%)"></span><strong>50%–79.9%</strong></div>
+  <div class="chip"><span class="swatch" style="background:hsl(140,60%,60%)"></span><strong>≥ 80%</strong></div>
+</div>
+"""
+
+# About
+about_body = f"""
+<div class="card">
+  <h1>Vitamin A, Deworming & Mass MUAC Screening</h1>
+  <p class="lead">An integrated campaign to protect and nourish children 6–59 months across all counties in South Sudan.
+  This site presents county-by-county coverage for Vitamin A supplementation, Deworming, and MUAC screening, including state and overall indicators.</p>
+  <div class="badges">
+    <div class="badge"><strong>UNICEF-led</strong></div>
+    <div class="badge"><strong>National Coverage</strong></div>
+    <div class="badge"><strong>County Breakdown</strong></div>
+  </div>
+  <div style="margin-top:12px">
+    <div class="kpis">
+      {kpi_card("Vitamin A", overall_map.get("VitaCoverageOverall"))}
+      {kpi_card("Deworming", overall_map.get("DewormCoverageOverall"))}
+      {kpi_card("MUAC Screening", overall_map.get("muacCoverageOverall"))}
+    </div>
+  </div>
+</div>
+
+<div style="height:16px"></div>
+
+<div class="card">
+  <h2>Heatmap legend</h2>
+  <p class="lead" style="margin-top:0">Cells are colored by coverage percentage: red &lt; 50%, yellow 50%–79.9%, green ≥ 80%. Text color adjusts for readability.</p>
+  {legend_html}
+</div>
+"""
+(out_dir / "index.html").write_text(page_shell("UNICEF · Vitamin A Campaign — About", about_body), encoding="utf-8")
+
+# Vitamin A page
+vita_cols = [
+    {"key":"State","label":"State","fmt":"text","heat":False},
+    {"key":"county","label":"County","fmt":"text","heat":False},
+    {"key":"vita6to59months","label":"# Reached (6–59m)","fmt":"num","heat":False},
+    {"key":"vitapop","label":"Target Pop","fmt":"num","heat":False},
+    {"key":"VitaCoverage","label":"Coverage % (County)","fmt":"pct","heat":True},
+    {"key":"VitaCoverageState","label":"Coverage % (State)","fmt":"pct","heat":True},
+]
+vita_table = build_table_html(vita, vita_cols, caption="All counties — Vitamin A supplementation coverage")
+vita_body = f"""
+<div class="card">
+  <h1>Vitamin A</h1>
+  <p class="lead">County coverage for children 6–59 months.</p>
+  {legend_html}
+  <div class="kpis">
+    {kpi_card("Vitamin A", overall_map.get("VitaCoverageOverall"))}
+  </div>
+  <div style="height:10px"></div>
+  <div class="tableWrap">{vita_table}</div>
+</div>
+"""
+(out_dir / "vitamin-a.html").write_text(page_shell("UNICEF · Vitamin A Campaign — Vitamin A", vita_body), encoding="utf-8")
+
+# Deworming page
+dewo_cols = [
+    {"key":"State","label":"State","fmt":"text","heat":False},
+    {"key":"county","label":"County","fmt":"text","heat":False},
+    {"key":"deworm12to59months","label":"# Reached (12–59m)","fmt":"num","heat":False},
+    {"key":"dewormpop","label":"Target Pop","fmt":"num","heat":False},
+    {"key":"DewormCoverage","label":"Coverage % (County)","fmt":"pct","heat":True},
+    {"key":"DewormCoverageState","label":"Coverage % (State)","fmt":"pct","heat":True},
+]
+dewo_table = build_table_html(dewo, dewo_cols, caption="All counties — Deworming coverage")
+dewo_body = f"""
+<div class="card">
+  <h1>Deworming</h1>
+  <p class="lead">County coverage for children 12–59 months.</p>
+  {legend_html}
+  <div class="kpis">
+    {kpi_card("Deworming", overall_map.get("DewormCoverageOverall"))}
+  </div>
+  <div style="height:10px"></div>
+  <div class="tableWrap">{dewo_table}</div>
+</div>
+"""
+(out_dir / "deworming.html").write_text(page_shell("UNICEF · Vitamin A Campaign — Deworming", dewo_body), encoding="utf-8")
+
+# MUAC page
+muac_cols = [
+    {"key":"State","label":"State","fmt":"text","heat":False},
+    {"key":"county","label":"County","fmt":"text","heat":False},
+    {"key":"muac6to59months","label":"# Screened (6–59m)","fmt":"num","heat":False},
+    {"key":"vitapop","label":"Target Pop","fmt":"num","heat":False},
+    {"key":"muacCoverage","label":"Coverage % (County)","fmt":"pct","heat":True},
+    {"key":"muacCoverageState","label":"Coverage % (State)","fmt":"pct","heat":True},
+]
+muac_table = build_table_html(muac, muac_cols, caption="All counties — MUAC screening coverage")
+muac_body = f"""
+<div class="card">
+  <h1>MUAC Screening</h1>
+  <p class="lead">County-level screening coverage for children 6–59 months.</p>
+  {legend_html}
+  <div class="kpis">
+    {kpi_card("MUAC Screening", overall_map.get("muacCoverageOverall"))}
+  </div>
+  <div style="height:10px"></div>
+  <div class="tableWrap">{muac_table}</div>
+</div>
+"""
+(out_dir / "muac.html").write_text(page_shell("UNICEF · Vitamin A Campaign — MUAC", muac_body), encoding="utf-8")
+
+# ZIP
+zip_path = "/mnt/data/vitamin_a_campaign_site_threshold.zip"
+if Path(zip_path).exists():
+    Path(zip_path).unlink()
+shutil.make_archive("/mnt/data/vitamin_a_campaign_site_threshold", "zip", out_dir)
+
+{"out_dir": str(out_dir), "zip_path": zip_path}

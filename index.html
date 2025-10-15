@@ -1,208 +1,320 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Vitamin A Campaign Dashboard</title>
-  <style>
-    /* UNICEF primary blue background */
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #0099cc;
-      color: #fff;
-    }
-
-    /* Fixed top navigation */
-    nav {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background-color: #006699;
-      padding: 10px;
-      z-index: 1000;
-    }
-
-    nav a {
-      color: #fff;
-      margin: 0 15px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    section {
-      padding: 80px 20px 40px;
-      background-color: #e6f7ff;
-      color: #000;
-    }
-
-    h2 {
-      color: #006699;
-    }
-
-    .heatmap {
-      margin: 20px 0;
-    }
-
-    canvas {
-      border: 1px solid #ccc;
-      background-color: #fff;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-
-    th, td {
-      border: 1px solid #999;
-      padding: 4px 8px;
-      text-align: left;
-    }
-
-    .legend {
-      margin-top: 10px;
-    }
-
-    .legend span {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      margin-right: 5px;
-    }
-
-    .red { background-color: red; }
-    .yellow { background-color: yellow; }
-    .green { background-color: green; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitamin A Campaign Dashboard - South Sudan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1CABE2; /* UNICEF Primary Blue */
+            color: #1a202c;
+        }
+        /* Style for sticky header */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        /* Compact table styling */
+        .compact-table th, .compact-table td {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+        }
+        /* Custom card background */
+        .card {
+            background-color: #ffffff;
+        }
+    </style>
 </head>
-<body>
+<body class="antialiased">
 
-  <nav>
-    <a href="#about">About</a>
-    <a href="#vitamin">Vitamin A</a>
-    <a href="#deworming">Deworming</a>
-    <a href="#muac">MUAC Screening</a>
-  </nav>
+    <!-- Sticky Navigation Header -->
+    <header class="sticky-header shadow-md">
+        <nav class="container mx-auto px-6 py-3">
+            <div class="flex items-center justify-between">
+                <div class="text-xl font-bold text-gray-800">Campaign Dashboard</div>
+                <div class="flex items-center space-x-6">
+                    <a href="#about" class="text-gray-600 hover:text-blue-600 transition">About</a>
+                    <a href="#vitamin-a" class="text-gray-600 hover:text-blue-600 transition">Vitamin A</a>
+                    <a href="#deworming" class="text-gray-600 hover:text-blue-600 transition">Deworming</a>
+                    <a href="#muac" class="text-gray-600 hover:text-blue-600 transition">MUAC Screening</a>
+                </div>
+            </div>
+        </nav>
+    </header>
 
-  <section id="about">
-    <h2>About the Campaign</h2>
-    <p>This is an integrated Vitamin A, Deworming, and Mass MUAC screening campaign in South Sudan. It aims to improve child health outcomes through targeted interventions across all counties.</p>
-  </section>
+    <main class="container mx-auto p-4 md:p-8">
+        
+        <!-- Overall Results Section -->
+        <section class="mb-10">
+            <h2 class="text-3xl font-bold text-white mb-4 text-center">Overall Campaign Achievements</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div class="card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-500">Vitamin A Coverage</h3>
+                    <p id="overall-vita" class="text-5xl font-bold text-blue-600 mt-2">--%</p>
+                </div>
+                <div class="card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-500">Deworming Coverage</h3>
+                    <p id="overall-deworm" class="text-5xl font-bold text-blue-600 mt-2">--%</p>
+                </div>
+                <div class="card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-500">MUAC Screening Coverage</h3>
+                    <p id="overall-muac" class="text-5xl font-bold text-blue-600 mt-2">--%</p>
+                </div>
+            </div>
+        </section>
 
-  <section id="vitamin">
-    <h2>Vitamin A Coverage</h2>
-    <p><strong>Overall Coverage:</strong> <span id="vitacoverageoverall"></span></p>
-    <div class="heatmap">
-      <canvas id="vitaminCanvas" width="800" height="400"></canvas>
-    </div>
-    <div class="legend">
-      <span class="red"></span> &lt; 50% 
-      <span class="yellow"></span> 50–79% 
-      <span class="green"></span> ≥80%
-    </div>
-    <table id="vitaminTable">
-      <thead>
-        <tr><th>County</th><th>Coverage</th><th>State Coverage</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
+        <!-- About Section -->
+        <section id="about" class="card p-8 rounded-lg shadow-lg mb-10 scroll-mt-20">
+            <h2 class="text-2xl font-bold mb-4">About the Campaign</h2>
+            <p class="text-gray-700">
+                This dashboard presents the results of the integrated Vitamin A, Deworming, and Mass MUAC (Mid-Upper Arm Circumference) Screening Campaign conducted in South Sudan. The campaign aimed to deliver essential health and nutrition interventions to children to prevent deficiencies and malnutrition. The data reflects coverage rates at the county, state, and national levels, providing key insights for program monitoring and future planning.
+            </p>
+        </section>
 
-  <section id="deworming">
-    <h2>Deworming Coverage</h2>
-    <p><strong>Overall Coverage:</strong> <span id="dewormcoverageoverall"></span></p>
-    <div class="heatmap">
-      <canvas id="dewormCanvas" width="800" height="400"></canvas>
-    </div>
-    <div class="legend">
-      <span class="red"></span> &lt; 50% 
-      <span class="yellow"></span> 50–79% 
-      <span class="green"></span> ≥80%
-    </div>
-    <table id="dewormTable">
-      <thead>
-        <tr><th>County</th><th>Coverage</th><th>State Coverage</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
+        <!-- Vitamin A Section -->
+        <section id="vitamin-a" class="card p-8 rounded-lg shadow-lg mb-10 scroll-mt-20">
+            <h2 class="text-2xl font-bold mb-4">Vitamin A Coverage</h2>
+            <div class="overflow-x-auto">
+                <table id="vita-table" class="min-w-full bg-white border border-gray-200 compact-table">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="text-left border-b">State</th>
+                            <th class="text-left border-b">County</th>
+                            <th class="text-right border-b">Children Reached</th>
+                            <th class="text-right border-b">Target Population</th>
+                            <th class="text-right border-b">County Coverage</th>
+                            <th class="text-right border-b">State Coverage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-  <section id="muac">
-    <h2>MUAC Screening Coverage</h2>
-    <p><strong>Overall Coverage:</strong> <span id="muaccoverageoverall"></span></p>
-    <div class="heatmap">
-      <canvas id="muacCanvas" width="800" height="400"></canvas>
-    </div>
-    <div class="legend">
-      <span class="red"></span> &lt; 50% 
-      <span class="yellow"></span> 50–79% 
-      <span class="green"></span> ≥80%
-    </div>
-    <table id="muacTable">
-      <thead>
-        <tr><th>County</th><th>Coverage</th><th>State Coverage</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
+        <!-- Deworming Section -->
+        <section id="deworming" class="card p-8 rounded-lg shadow-lg mb-10 scroll-mt-20">
+            <h2 class="text-2xl font-bold mb-4">Deworming Coverage</h2>
+            <div class="overflow-x-auto">
+                <table id="deworm-table" class="min-w-full bg-white border border-gray-200 compact-table">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="text-left border-b">State</th>
+                            <th class="text-left border-b">County</th>
+                            <th class="text-right border-b">Children Reached</th>
+                            <th class="text-right border-b">Target Population</th>
+                            <th class="text-right border-b">County Coverage</th>
+                            <th class="text-right border-b">State Coverage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-  <script>
-    // Sample data placeholders — replace with actual data from finalc_coverage.xlsx
-    const vitaminData = [
-      { county: "Juba", coverage: 85, state: 80 },
-      { county: "Bor", coverage: 72, state: 75 },
-      { county: "Wau", coverage: 45, state: 50 }
-    ];
+        <!-- MUAC Screening Section -->
+        <section id="muac" class="card p-8 rounded-lg shadow-lg scroll-mt-20">
+            <h2 class="text-2xl font-bold mb-4">MUAC Screening Coverage</h2>
+            <div class="overflow-x-auto">
+                <table id="muac-table" class="min-w-full bg-white border border-gray-200 compact-table">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="text-left border-b">State</th>
+                            <th class="text-left border-b">County</th>
+                            <th class="text-right border-b">Children Screened</th>
+                            <th class="text-right border-b">Target Population</th>
+                            <th class="text-right border-b">County Coverage</th>
+                            <th class="text-right border-b">State Coverage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
 
-    const dewormData = [
-      { county: "Juba", coverage: 90, state: 88 },
-      { county: "Bor", coverage: 65, state: 70 },
-      { county: "Wau", coverage: 40, state: 45 }
-    ];
+    <script>
+        // Data from the "final_coverage.xlsx - Coverage Analysis.csv" file is embedded here.
+        const campaignData = [
+            {"state":"CES","county":"Juba","totalpopulation2025":685130,"vita6to59months":44515,"vitapop":130174.7,"vitacoverage":34.196353912353516,"vitacoveragestate":27.390953063964844,"vitacoverageoverall":61.38254928588867,"deworm12to59months":39995,"dewormpop":116472.1,"dewormcoverage":34.338695526123047,"dewormcoveragestate":27.543825149536133,"dewormcoverageoverall":59.03193664550781,"muac6to59months":20790,"muaccoverage":15.970845222473145,"muaccoveragestate":13.978198051452637,"muaccoverageoverall":32.937339782714844},
+            {"state":"CES","county":"Kajo-keji","totalpopulation2025":148013,"vita6to59months":0,"vitapop":28122.47,"vitacoverage":0,"vitacoveragestate":27.390953063964844,"vitacoverageoverall":61.38254928588867,"deworm12to59months":0,"dewormpop":25164.21,"dewormcoverage":0,"dewormcoveragestate":27.543825149536133,"dewormcoverageoverall":59.03193664550781,"muac6to59months":0,"muaccoverage":0,"muaccoveragestate":13.978198051452637,"muaccoverageoverall":32.937339782714844},
+            {"state":"CES","county":"Lainya","totalpopulation2025":117325,"vita6to59months":0,"vitapop":22291.75,"vitacoverage":0,"vitacoveragestate":27.390953063964844,"vitacoverageoverall":61.38254928588867,"deworm12to59months":0,"dewormpop":19947.75,"dewormcoverage":0,"dewormcoveragestate":27.543825149536133,"dewormcoverageoverall":59.03193664550781,"muac6to59months":0,"muaccoverage":0,"muaccoveragestate":13.978198051452637,"muaccoverageoverall":32.937339782714844},
+            {"state":"CES","county":"Morobo","totalpopulation2025":136544,"vita6to59months":0,"vitapop":25943.36,"vitacoverage":0,"vitacoveragestate":27.390953063964844,"vitacoverageoverall":61.38254928588867,"deworm12to59months":0,"dewormpop":23219.48,"dewormcoverage":0,"dewormcoveragestate":27.543825149536133,"dewormcoverageoverall":59.03193664550781,"muac6to59months":0,"muaccoverage":0,"muaccoveragestate":13.978198051452637,"muaccoverageoverall":32.937339782714844},
+            {"state":"CES","county":"Terekeka","totalpopulation2025":187310,"vita6to59months":15730,"vitapop":35588.9,"vitacoverage":44.19736862182617,"vitacoveragestate":27.390953063964844,"vitacoverageoverall":61.38254928588867,"deworm12to59months":15890,"dewormpop":31842.7,"dewormcoverage":49.90154266357422,"dewormcoveragestate":27.543825149536133,"dewormcoverageoverall":59.03193664550781,"muac6to59months":9980,"muaccoverage":28.0433292388916,"muaccoveragestate":13.978198051452637,"muaccoverageoverall":32.937339782714844},
+            {"state":"CES","county":"Yei","totalpopulation2025":265939,"vita6to59months":19754,"vitapop":50528.41,"vitacoverage":39.09462356567383,"vitacoveragestate":27.390953063964844,"vitacoverageoverall":61.38254928588867,"deworm12to59months":19098,"dewormpop":45229.63,"dewormcoverage":42.22177505493164,"dewormcoveragestate":27.543825149536133,"dewormcoverageoverall":59.03193664550781,"muac6to59months":15456,"muaccoverage":30.588661193847656,"muaccoveragestate":13.978198051452637,"muaccoverageoverall":32.937339782714844},
+            {"state":"EES","county":"Budi","totalpopulation2025":136931,"vita6to59months":0,"vitapop":26016.89,"vitacoverage":0,"vitacoveragestate":63.63002395629883,"vitacoverageoverall":61.38254928588867,"deworm12to59months":0,"dewormpop":23282.27,"dewormcoverage":0,"dewormcoveragestate":64.12053680419922,"dewormcoverageoverall":59.03193664550781,"muac6to59months":0,"muaccoverage":0,"muaccoveragestate":35.26760482788086,"muaccoverageoverall":32.937339782714844},
+            {"state":"EES","county":"Ikotos","totalpopulation2025":110756,"vita6to59months":30756,"vitapop":21043.64,"vitacoverage":146.1540985107422,"vitacoveragestate":63.63002395629883,"vitacoverageoverall":61.38254928588867,"deworm12to59months":29876,"dewormpop":18833.52,"dewormcoverage":158.63189697265625,"dewormcoveragestate":64.12053680419922,"dewormcoverageoverall":59.03193664550781,"muac6to59months":10897,"muaccoverage":51.782806396484375,"muaccoveragestate":35.26760482788086,"muaccoverageoverall":32.937339782714844},
+            {"state":"EES","county":"Kapoeta East","totalpopulation2025":206192,"vita6to59months":0,"vitapop":39176.48,"vitacoverage":0,"vitacoveragestate":63.63002395629883,"vitacoverageoverall":61.38254928588867,"deworm12to59months":0,"dewormpop":35061.64,"dewormcoverage":0,"dewormcoveragestate":64.12053680419922,"dewormcoverageoverall":59.03193664550781,"muac6to59months":0,"muaccoverage":0,"muaccoveragestate":35.26760482788086,"muaccoverageoverall":32.937339782714844},
+            {"state":"EES","county":"Kapoeta North","totalpopulation2025":141679,"vita6to59months":30987,"vitapop":26919.01,"vitacoverage":115.11186218261719,"vitacoveragestate":63.63002395629883,"vitacoverageoverall":61.38254928588867,"deworm12to59months":30987,"dewormpop":24092.43,"dewormcoverage":128.61807250976562,"dewormcoveragestate":64.12053680419922,"dewormcoverageoverall":59.03193664550781,"muac6to59months":20987,"muaccoverage":77.96259307861328,"muaccoveragestate":35.26760482788086,"muaccoverageoverall":32.937339782714844},
+            {"state":"EES","county":"Kapoeta South","totalpopulation2025":117281,"vita6to59months":21098,"vitapop":22283.39,"vitacoverage":94.68048095703125,"vitacoveragestate":63.63002395629883,"vitacoverageoverall":61.38254928588867,"deworm12to59months":20879,"dewormpop":19938.77,"dewormcoverage":104.71569061279297,"dewormcoveragestate":64.12053680419922,"dewormcoverageoverall":59.03193664550781,"muac6to59months":10876,"muaccoverage":48.807769775390625,"muaccoveragestate":35.26760482788086,"muaccoverageoverall":32.937339782714844},
+            {"state":"EES","county":"Lafon","totalpopulation2025":141753,"vita6to59months":0,"vitapop":26933.07,"vitacoverage":0,"vitacoveragestate":63.63002395629883,"vitacoverageoverall":61.38254928588867,"deworm12to59months":0,"dewormpop":24107.01,"dewormcoverage":0,"dewormcoveragestate":64.12053680419922,"dewormcoverageoverall":59.03193664550781,"muac6to59months":0,"muaccoverage":0,"muaccoveragestate":35.26760482788086,"muaccoverageoverall":32.937339782714844},
+            {"state":"EES","county":"Magwi","totalpopulation2025":196781,"vita6to59months":20987,"vitapop":37388.39,"vitacoverage":56.13105010986328,"vitacoveragestate":63.63002395629883,"vitacoverageoverall":61.38254928588867,"deworm12to59months":20987,"dewormpop":33461.77,"dewormcoverage":62.718875885009766,"dewormcoveragestate":64.12053680419922,"dewormcoverageoverall":59.03193664550781,"muac6to59months":10987,"muaccoverage":29.386022567749023,"muaccoveragestate":35.26760482788086,"muaccoverageoverall":32.937339782714844},
+            {"state":"EES","county":"Torit","totalpopulation2025":210659,"vita6to59months":43212,"vitapop":40025.21,"vitacoverage":107.96195220947266,"vitacoveragestate":63.63002395629883,"vitacoverageoverall":61.38254928588867,"deworm12to59months":42343,"dewormpop":35812.03,"dewormcoverage":118.23616027832031,"dewormcoveragestate":64.12053680419922,"dewormcoverageoverall":59.03193664550781,"muac6to59months":20876,"muaccoverage":52.157142639160156,"muaccoveragestate":35.26760482788086,"muaccoverageoverall":32.937339782714844},
+            {"state":"Jonglei","county":"Akobo","totalpopulation2025":263873,"vita6to59months":52343,"vitapop":50135.87,"vitacoverage":104.40209197998047,"vitacoveragestate":94.03080749511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":44858,"dewormpop":44858.41,"dewormcoverage":99.99908447265625,"dewormcoveragestate":95.1275863647461,"dewormcoverageoverall":59.03193664550781,"muac6to59months":34987,"muaccoverage":69.78912353515625,"muaccoveragestate":60.590057373046875,"muaccoverageoverall":32.937339782714844},
+            {"state":"Jonglei","county":"Ayod","totalpopulation2025":210345,"vita6to59months":45098,"vitapop":39965.55,"vitacoverage":112.84191131591797,"vitacoveragestate":94.03080749511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":43987,"dewormpop":35763.45,"dewormcoverage":122.99671173095703,"dewormcoveragestate":95.1275863647461,"dewormcoverageoverall":59.03193664550781,"muac6to59months":30876,"muaccoverage":77.25686645507812,"muaccoveragestate":60.590057373046875,"muaccoverageoverall":32.937339782714844},
+            {"state":"Jonglei","county":"Bor South","totalpopulation2025":117281,"vita6to59months":0,"vitapop":22283.39,"vitacoverage":0,"vitacoveragestate":94.03080749511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":0,"dewormpop":19938.77,"dewormcoverage":0,"dewormcoveragestate":95.1275863647461,"dewormcoverageoverall":59.03193664550781,"muac6to59months":0,"muaccoverage":0,"muaccoveragestate":60.590057373046875,"muaccoverageoverall":32.937339782714844},
+            {"state":"Jonglei","county":"Duk","totalpopulation2025":103639,"vita6to59months":19098,"vitapop":19691.41,"vitacoverage":96.98616027832031,"vitacoveragestate":94.03080749511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":18978,"dewormpop":17621.63,"dewormcoverage":107.69719696044922,"dewormcoveragestate":95.1275863647461,"dewormcoverageoverall":59.03193664550781,"muac6to59months":10987,"muaccoverage":55.795555114746094,"muaccoveragestate":60.590057373046875,"muaccoverageoverall":32.937339782714844},
+            {"state":"Jonglei","county":"Fangak","totalpopulation2025":158498,"vita6to59months":20876,"vitapop":30114.62,"vitacoverage":69.32070007324219,"vitacoveragestate":94.03080749511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":20876,"dewormpop":26954.66,"dewormcoverage":77.44917297363281,"dewormcoveragestate":95.1275863647461,"dewormcoverageoverall":59.03193664550781,"muac6to59months":20876,"muaccoverage":69.32070007324219,"muaccoveragestate":60.590057373046875,"muaccoverageoverall":32.937339782714844},
+            {"state":"Jonglei","county":"Nyirol","totalpopulation2025":145451,"vita6to59months":30876,"vitapop":27635.69,"vitacoverage":111.72528076171875,"vitacoveragestate":94.03080749511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":30876,"dewormpop":24736.67,"dewormcoverage":124.81880950927734,"dewormcoveragestate":95.1275863647461,"dewormcoverageoverall":59.03193664550781,"muac6to59months":20987,"muaccoverage":75.9427490234375,"muaccoveragestate":60.590057373046875,"muaccoverageoverall":32.937339782714844},
+            {"state":"Jonglei","county":"Pibor","totalpopulation2025":243765,"vita6to59months":45987,"vitapop":46315.35,"vitacoverage":99.2910385131836,"vitacoveragestate":94.03080749511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":45098,"dewormpop":41445.05,"dewormcoverage":108.81385803222656,"dewormcoveragestate":95.1275863647461,"dewormcoverageoverall":59.03193664550781,"muac6to59months":30987,"muaccoverage":66.90374755859375,"muaccoveragestate":60.590057373046875,"muaccoverageoverall":32.937339782714844},
+            {"state":"Jonglei","county":"Twic East","totalpopulation2025":123738,"vita6to59months":0,"vitapop":23510.22,"vitacoverage":0,"vitacoveragestate":94.03080749511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":0,"dewormpop":21035.46,"dewormcoverage":0,"dewormcoveragestate":95.1275863647461,"dewormcoverageoverall":59.03193664550781,"muac6to59months":0,"muaccoverage":0,"muaccoveragestate":60.590057373046875,"muaccoverageoverall":32.937339782714844},
+            {"state":"Jonglei","county":"Uror","totalpopulation2025":218080,"vita6to59months":45987,"vitapop":41435.2,"vitacoverage":110.9835205078125,"vitacoveragestate":94.03080749511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":45098,"dewormpop":37080.8,"dewormcoverage":121.62100982666016,"dewormcoveragestate":95.1275863647461,"dewormcoverageoverall":59.03193664550781,"muac6to59months":30987,"muaccoverage":74.78401184082031,"muaccoveragestate":60.590057373046875,"muaccoverageoverall":32.937339782714844},
+            {"state":"Lakes","county":"Awerial","totalpopulation2025":136931,"vita6to59months":15987,"vitapop":26016.89,"vitacoverage":61.44840621948242,"vitacoveragestate":65.23419952392578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":15098,"dewormpop":23282.27,"dewormcoverage":64.8465500,"dewormcoveragestate":66.97441101074219,"dewormcoverageoverall":59.03193664550781,"muac6to59months":10987,"muaccoverage":42.230201721191406,"muaccoveragestate":40.09838104248047,"muaccoverageoverall":32.937339782714844},
+            {"state":"Lakes","county":"Cueibet","totalpopulation2025":211599,"vita6to59months":30987,"vitapop":40203.81,"vitacoverage":77.07521057128906,"vitacoveragestate":65.23419952392578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":29876,"dewormpop":35976.81,"dewormcoverage":83.0423050,"dewormcoveragestate":66.97441101074219,"dewormcoverageoverall":59.03193664550781,"muac6to59months":20987,"muaccoverage":52.19944381713867,"muaccoveragestate":40.09838104248047,"muaccoverageoverall":32.937339782714844},
+            {"state":"Lakes","county":"Rumbek Centre","totalpopulation2025":206192,"vita6to59months":30987,"vitapop":39176.48,"vitacoverage":79.09545135498047,"vitacoveragestate":65.23419952392578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":30987,"dewormpop":35061.64,"dewormcoverage":88.37861633300781,"dewormcoveragestate":66.97441101074219,"dewormcoverageoverall":59.03193664550781,"muac6to59months":20987,"muaccoverage":53.57142639160156,"muaccoveragestate":40.09838104248047,"muaccoverageoverall":32.937339782714844},
+            {"state":"Lakes","county":"Rumbek East","totalpopulation2025":163473,"vita6to59months":20987,"vitapop":31060.0,"vitacoverage":67.56922912597656,"vitacoveragestate":65.23419952392578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":20987,"dewormpop":27790.0,"dewormcoverage":75.520,"dewormcoveragestate":66.97441101074219,"dewormcoverageoverall":59.03193664550781,"muac6to59months":15987,"muaccoverage":51.471343994140625,"muaccoveragestate":40.09838104248047,"muaccoverageoverall":32.937339782714844},
+            {"state":"Lakes","county":"Rumbek North","totalpopulation2025":66804,"vita6to59months":10987,"vitapop":12692.76,"vitacoverage":86.56015014648438,"vitacoveragestate":65.23419952392578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":10987,"dewormpop":11356.68,"dewormcoverage":96.74491882324219,"dewormcoveragestate":66.97441101074219,"dewormcoverageoverall":59.03193664550781,"muac6to59months":8976,"muaccoverage":70.71888732910156,"muaccoveragestate":40.09838104248047,"muaccoverageoverall":32.937339782714844},
+            {"state":"Lakes","county":"Wulu","totalpopulation2025":76536,"vita6to59months":10876,"vitapop":14541.84,"vitacoverage":74.7920150756836,"vitacoveragestate":65.23419952392578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":10987,"dewormpop":13011.12,"dewormcoverage":84.44355010986328,"dewormcoveragestate":66.97441101074219,"dewormcoverageoverall":59.03193664550781,"muac6to59months":8765,"muaccoverage":60.274898529052734,"muaccoveragestate":40.09838104248047,"muaccoverageoverall":32.937339782714844},
+            {"state":"Lakes","county":"Yirol East","totalpopulation2025":110756,"vita6to59months":20987,"vitapop":21043.64,"vitacoverage":99.73085021972656,"vitacoveragestate":65.23419952392578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":20987,"dewormpop":18833.52,"dewormcoverage":111.43405151367188,"dewormcoveragestate":66.97441101074219,"dewormcoverageoverall":59.03193664550781,"muac6to59months":15098,"muaccoverage":71.74609375,"muaccoveragestate":40.09838104248047,"muaccoverageoverall":32.937339782714844},
+            {"state":"Lakes","county":"Yirol West","totalpopulation2025":136931,"vita6to59months":20987,"vitapop":26016.89,"vitacoverage":80.66699981689453,"vitacoveragestate":65.23419952392578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":19876,"dewormpop":23282.27,"dewormcoverage":85.36946105957031,"dewormcoveragestate":66.97441101074219,"dewormcoverageoverall":59.03193664550781,"muac6to59months":10987,"muaccoverage":42.230201721191406,"muaccoveragestate":40.09838104248047,"muaccoverageoverall":32.937339782714844},
+            {"state":"Northern Bahr el Ghazal","county":"Aweil Centre","totalpopulation2025":168345,"vita6to59months":52000,"vitapop":31985.55,"vitacoverage":162.5731201171875,"vitacoveragestate":102.73007202148438,"vitacoverageoverall":61.38254928588867,"deworm12to59months":51000,"dewormpop":28623.65,"dewormcoverage":178.17478942871094,"dewormcoveragestate":112.55184173583984,"dewormcoverageoverall":59.03193664550781,"muac6to59months":35000,"muaccoverage":109.42436218261719,"muaccoveragestate":69.49757385253906,"muaccoverageoverall":32.937339782714844},
+            {"state":"Northern Bahr el Ghazal","county":"Aweil East","totalpopulation2025":458518,"vita6to59months":90876,"vitapop":87118.42,"vitacoverage":104.31302642822266,"vitacoveragestate":102.73007202148438,"vitacoverageoverall":61.38254928588867,"deworm12to59months":89000,"dewormpop":77968.06,"dewormcoverage":114.149169921875,"dewormcoveragestate":112.55184173583984,"dewormcoverageoverall":59.03193664550781,"muac6to59months":50000,"muaccoverage":57.3912239074707,"muaccoveragestate":69.49757385253906,"muaccoverageoverall":32.937339782714844},
+            {"state":"Northern Bahr el Ghazal","county":"Aweil North","totalpopulation2025":148957,"vita6to59months":45000,"vitapop":28301.83,"vitacoverage":158.99899291992188,"vitacoveragestate":102.73007202148438,"vitacoverageoverall":61.38254928588867,"deworm12to59months":43987,"dewormpop":25325.69,"dewormcoverage":173.68414306640625,"dewormcoveragestate":112.55184173583984,"dewormcoverageoverall":59.03193664550781,"muac6to59months":25000,"muaccoverage":88.33345794677734,"muaccoveragestate":69.49757385253906,"muaccoverageoverall":32.937339782714844},
+            {"state":"Northern Bahr el Ghazal","county":"Aweil South","totalpopulation2025":110756,"vita6to59months":23000,"vitapop":21043.64,"vitacoverage":109.2965316772461,"vitacoveragestate":102.73007202148438,"vitacoverageoverall":61.38254928588867,"deworm12to59months":21098,"dewormpop":18833.52,"dewormcoverage":112.02320861816406,"dewormcoveragestate":112.55184173583984,"dewormcoverageoverall":59.03193664550781,"muac6to59months":13098,"muaccoverage":62.24285125732422,"muaccoveragestate":69.49757385253906,"muaccoverageoverall":32.937339782714844},
+            {"state":"Northern Bahr el Ghazal","county":"Aweil West","totalpopulation2025":243765,"vita6to59months":45000,"vitapop":46315.35,"vitacoverage":97.16010284423828,"vitacoveragestate":102.73007202148438,"vitacoverageoverall":61.38254928588867,"deworm12to59months":43000,"dewormpop":41445.05,"dewormcoverage":103.75171661376953,"dewormcoveragestate":112.55184173583984,"dewormcoverageoverall":59.03193664550781,"muac6to59months":23000,"muaccoverage":49.654815673828125,"muaccoveragestate":69.49757385253906,"muaccoverageoverall":32.937339782714844},
+            {"state":"Unity","county":"Abiemnhom ","totalpopulation2025":30927,"vita6to59months":5876,"vitapop":5876.13,"vitacoverage":99.99778747558594,"vitacoveragestate":82.84650421142578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":5257,"dewormpop":5257.59,"dewormcoverage":99.98877716064453,"dewormcoveragestate":83.42859649658203,"dewormcoverageoverall":59.03193664550781,"muac6to59months":4000,"muaccoverage":68.07166290283203,"muaccoveragestate":50.360172271728516,"muaccoverageoverall":32.937339782714844},
+            {"state":"Unity","county":"Guit","totalpopulation2025":57195,"vita6to59months":10867,"vitapop":10867.05,"vitacoverage":100.0,"vitacoveragestate":82.84650421142578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":9723,"dewormpop":9723.15,"dewormcoverage":99.99845886230469,"dewormcoveragestate":83.42859649658203,"dewormcoverageoverall":59.03193664550781,"muac6to59months":7000,"muaccoverage":64.41499328613281,"muaccoveragestate":50.360172271728516,"muaccoverageoverall":32.937339782714844},
+            {"state":"Unity","county":"Koch","totalpopulation2025":110756,"vita6to59months":21043,"vitapop":21043.64,"vitacoverage":99.99695587158203,"vitacoveragestate":82.84650421142578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":18833,"dewormpop":18833.52,"dewormcoverage":99.99723815917969,"dewormcoveragestate":83.42859649658203,"dewormcoverageoverall":59.03193664550781,"muac6to59months":12000,"muaccoverage":57.024227142333984,"muaccoveragestate":50.360172271728516,"muaccoverageoverall":32.937339782714844},
+            {"state":"Unity","county":"Leer","totalpopulation2025":89055,"vita6to59months":16920,"vitapop":16920.45,"vitacoverage":99.99734497070312,"vitacoveragestate":82.84650421142578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":15139,"dewormpop":15139.35,"dewormcoverage":99.99768829345703,"dewormcoveragestate":83.42859649658203,"dewormcoverageoverall":59.03193664550781,"muac6to59months":9000,"muaccoverage":53.189598083496094,"muaccoveragestate":50.360172271728516,"muaccoverageoverall":32.937339782714844},
+            {"state":"Unity","county":"Mayendit","totalpopulation2025":117281,"vita6to59months":22283,"vitapop":22283.39,"vitacoverage":99.99824523925781,"vitacoveragestate":82.84650421142578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":19938,"dewormpop":19938.77,"dewormcoverage":99.99614715576172,"dewormcoveragestate":83.42859649658203,"dewormcoverageoverall":59.03193664550781,"muac6to59months":13000,"muaccoverage":58.33878707885742,"muaccoveragestate":50.360172271728516,"muaccoverageoverall":32.937339782714844},
+            {"state":"Unity","county":"Mayom","totalpopulation2025":117281,"vita6to59months":22283,"vitapop":22283.39,"vitacoverage":99.99824523925781,"vitacoveragestate":82.84650421142578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":19938,"dewormpop":19938.77,"dewormcoverage":99.99614715576172,"dewormcoveragestate":83.42859649658203,"dewormcoverageoverall":59.03193664550781,"muac6to59months":10987,"muaccoverage":49.305572509765625,"muaccoveragestate":50.360172271728516,"muaccoverageoverall":32.937339782714844},
+            {"state":"Unity","county":"Panyijiar","totalpopulation2025":110756,"vita6to59months":20000,"vitapop":21043.64,"vitacoverage":95.0406265258789,"vitacoveragestate":82.84650421142578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":18000,"dewormpop":18833.52,"dewormcoverage":95.5743408203125,"dewormcoveragestate":83.42859649658203,"dewormcoverageoverall":59.03193664550781,"muac6to59months":10000,"muaccoverage":47.52031326293945,"muaccoveragestate":50.360172271728516,"muaccoverageoverall":32.937339782714844},
+            {"state":"Unity","county":"Rubkona","totalpopulation2025":136931,"vita6to59months":15000,"vitapop":26016.89,"vitacoverage":57.65432357788086,"vitacoveragestate":82.84650421142578,"vitacoverageoverall":61.38254928588867,"deworm12to59months":14000,"dewormpop":23282.27,"dewormcoverage":60.131103515625,"dewormcoveragestate":83.42859649658203,"dewormcoverageoverall":59.03193664550781,"muac6to59months":9000,"muaccoverage":34.593231201171875,"muaccoveragestate":50.360172271728516,"muaccoverageoverall":32.937339782714844},
+            {"state":"Upper Nile","county":"Fashoda","totalpopulation2025":60840,"vita6to59months":10000,"vitapop":11559.6,"vitacoverage":86.50818634033203,"vitacoveragestate":79.31481170654297,"vitacoverageoverall":61.38254928588867,"deworm12to59months":9000,"dewormpop":10344.4,"dewormcoverage":86.99972534179688,"dewormcoveragestate":79.91475677490234,"dewormcoverageoverall":59.03193664550781,"muac6to59months":7000,"muaccoverage":60.555728912353516,"muaccoveragestate":48.816436767578125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Upper Nile","county":"Longochuk","totalpopulation2025":110756,"vita6to59months":20000,"vitapop":21043.64,"vitacoverage":95.0406265258789,"vitacoveragestate":79.31481170654297,"vitacoverageoverall":61.38254928588867,"deworm12to59months":19000,"dewormpop":18833.52,"dewormcoverage":100.88398742675781,"dewormcoveragestate":79.91475677490234,"dewormcoverageoverall":59.03193664550781,"muac6to59months":12000,"muaccoverage":57.024227142333984,"muaccoveragestate":48.816436767578125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Upper Nile","county":"Maban","totalpopulation2025":210345,"vita6to59months":35000,"vitapop":39965.55,"vitacoverage":87.57598876953125,"vitacoveragestate":79.31481170654297,"vitacoverageoverall":61.38254928588867,"deworm12to59months":33000,"dewormpop":35763.45,"dewormcoverage":92.2727279663086,"dewormcoveragestate":79.91475677490234,"dewormcoverageoverall":59.03193664550781,"muac6to59months":25000,"muaccoverage":62.553932189941406,"muaccoveragestate":48.816436767578125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Upper Nile","county":"Maiwut","totalpopulation2025":117281,"vita6to59months":20000,"vitapop":22283.39,"vitacoverage":89.75330352783203,"vitacoveragestate":79.31481170654297,"vitacoverageoverall":61.38254928588867,"deworm12to59months":18000,"dewormpop":19938.77,"dewormcoverage":90.27641296386719,"dewormcoveragestate":79.91475677490234,"dewormcoverageoverall":59.03193664550781,"muac6to59months":13000,"muaccoverage":58.33878707885742,"muaccoveragestate":48.816436767578125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Upper Nile","county":"Malakal","totalpopulation2025":172118,"vita6to59months":30000,"vitapop":32702.42,"vitacoverage":91.73641967773438,"vitacoveragestate":79.31481170654297,"vitacoverageoverall":61.38254928588867,"deworm12to59months":29000,"dewormpop":29270.06,"dewormcoverage":99.07733917236328,"dewormcoveragestate":79.91475677490234,"dewormcoverageoverall":59.03193664550781,"muac6to59months":18000,"muaccoverage":55.04104232788086,"muaccoveragestate":48.816436767578125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Upper Nile","county":"Manyo","totalpopulation2025":49339,"vita6to59months":8000,"vitapop":9374.41,"vitacoverage":85.3359603881836,"vitacoveragestate":79.31481170654297,"vitacoverageoverall":61.38254928588867,"deworm12to59months":7000,"dewormpop":8387.63,"dewormcoverage":83.45661163330078,"dewormcoveragestate":79.91475677490234,"dewormcoverageoverall":59.03193664550781,"muac6to59months":5000,"muaccoverage":53.33595657348633,"muaccoveragestate":48.816436767578125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Upper Nile","county":"Melut","totalpopulation2025":76536,"vita6to59months":13000,"vitapop":14541.84,"vitacoverage":89.39739227294922,"vitacoveragestate":79.31481170654297,"vitacoverageoverall":61.38254928588867,"deworm12to59months":12000,"dewormpop":13011.12,"dewormcoverage":92.22892761230469,"dewormcoveragestate":79.91475677490234,"dewormcoverageoverall":59.03193664550781,"muac6to59months":8000,"muaccoverage":55.01431655883789,"muaccoveragestate":48.816436767578125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Upper Nile","county":"Nasir","totalpopulation2025":287798,"vita6to59months":45000,"vitapop":54681.62,"vitacoverage":82.31175231933594,"vitacoveragestate":79.31481170654297,"vitacoverageoverall":61.38254928588867,"deworm12to59months":43000,"dewormpop":48935.66,"dewormcoverage":87.86927032470703,"dewormcoveragestate":79.91475677490234,"dewormcoverageoverall":59.03193664550781,"muac6to59months":30000,"muaccoverage":54.863155364990234,"muaccoveragestate":48.816436767578125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Upper Nile","county":"Renk","totalpopulation2025":210345,"vita6to59months":30000,"vitapop":39965.55,"vitacoverage":75.0653305053711,"vitacoveragestate":79.31481170654297,"vitacoverageoverall":61.38254928588867,"deworm12to59months":28000,"dewormpop":35763.45,"dewormcoverage":78.29525756835938,"dewormcoveragestate":79.91475677490234,"dewormcoverageoverall":59.03193664550781,"muac6to59months":20000,"muaccoverage":50.04221725463867,"muaccoveragestate":48.816436767578125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Upper Nile","county":"Ulang","totalpopulation2025":117281,"vita6to59months":20000,"vitapop":22283.39,"vitacoverage":89.75330352783203,"vitacoveragestate":79.31481170654297,"vitacoverageoverall":61.38254928588867,"deworm12to59months":19000,"dewormpop":19938.77,"dewormcoverage":95.29175567626953,"dewormcoveragestate":79.91475677490234,"dewormcoverageoverall":59.03193664550781,"muac6to59months":13000,"muaccoverage":58.33878707885742,"muaccoveragestate":48.816436767578125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Warrap","county":"Abyei","totalpopulation2025":89055,"vita6to59months":16920,"vitapop":16920.45,"vitacoverage":99.99734497070312,"vitacoveragestate":95.52299499511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":15139,"dewormpop":15139.35,"dewormcoverage":99.99768829345703,"dewormcoveragestate":91.42344665527344,"dewormcoverageoverall":59.03193664550781,"muac6to59months":10000,"muaccoverage":59.10000228881836,"muaccoveragestate":59.39048385620117,"muaccoverageoverall":32.937339782714844},
+            {"state":"Warrap","county":"Gogrial East","totalpopulation2025":136931,"vita6to59months":26016,"vitapop":26016.89,"vitacoverage":99.99657440185547,"vitacoveragestate":95.52299499511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":23282,"dewormpop":23282.27,"dewormcoverage":99.99884033203125,"dewormcoveragestate":91.42344665527344,"dewormcoverageoverall":59.03193664550781,"muac6to59months":15000,"muaccoverage":57.65432357788086,"muaccoveragestate":59.39048385620117,"muaccoverageoverall":32.937339782714844},
+            {"state":"Warrap","county":"Gogrial West","totalpopulation2025":440294,"vita6to59months":75398,"vitapop":83655.86,"vitacoverage":90.12877655029297,"vitacoveragestate":95.52299499511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":69385,"dewormpop":74849.98,"dewormcoverage":92.6987533569336,"dewormcoveragestate":91.42344665527344,"dewormcoverageoverall":59.03193664550781,"muac6to59months":4655,"muaccoverage":5.5644636154174805,"muaccoveragestate":59.39048385620117,"muaccoverageoverall":32.937339782714844},
+            {"state":"Warrap","county":"Tonj East","totalpopulation2025":208746,"vita6to59months":39661,"vitapop":39661.74,"vitacoverage":99.99813080,"vitacoveragestate":95.52299499511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":35486,"dewormpop":35486.82,"dewormcoverage":99.99768829,"dewormcoveragestate":91.42344665527344,"dewormcoverageoverall":59.03193664550781,"muac6to59months":25054,"muaccoverage":63.16875458,"muaccoveragestate":59.39048385620117,"muaccoverageoverall":32.937339782714844},
+            {"state":"Warrap","county":"Tonj North","totalpopulation2025":298209,"vita6to59months":56659,"vitapop":56659.71,"vitacoverage":99.99875641,"vitacoveragestate":95.52299499511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":50695,"dewormpop":50695.53,"dewormcoverage":99.99895477,"dewormcoveragestate":91.42344665527344,"dewormcoverageoverall":59.03193664550781,"muac6to59months":29510,"muaccoverage":52.08304977,"muaccoveragestate":59.39048385620117,"muaccoverageoverall":32.937339782714844},
+            {"state":"Warrap","county":"Tonj South","totalpopulation2025":156121,"vita6to59months":29662,"vitapop":29662.99,"vitacoverage":99.99666595,"vitacoveragestate":95.52299499511719,"vitacoverageoverall":61.38254928588867,"deworm12to59months":26540,"dewormpop":26540.57,"dewormcoverage":99.99784851,"dewormcoveragestate":91.42344665527344,"dewormcoverageoverall":59.03193664550781,"muac6to59months":15849,"muaccoverage":53.42998886,"muaccoveragestate":59.39048385620117,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Bahr el Ghazal","county":"Jur River","totalpopulation2025":168345,"vita6to59months":30000,"vitapop":31985.55,"vitacoverage":93.79222106933594,"vitacoveragestate":69.87030792236328,"vitacoverageoverall":61.38254928588867,"deworm12to59months":28000,"dewormpop":28623.65,"dewormcoverage":97.82119750976562,"dewormcoveragestate":71.91973114013672,"dewormcoverageoverall":59.03193664550781,"muac6to59months":20000,"muaccoverage":62.52985382080078,"muaccoveragestate":43.76313018798828,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Bahr el Ghazal","county":"Raga","totalpopulation2025":82823,"vita6to59months":15000,"vitapop":15736.37,"vitacoverage":95.32041931152344,"vitacoveragestate":69.87030792236328,"vitacoverageoverall":61.38254928588867,"deworm12to59months":14000,"dewormpop":14081.93,"dewormcoverage":99.41819763183594,"dewormcoveragestate":71.91973114013672,"dewormcoverageoverall":59.03193664550781,"muac6to59months":9000,"muaccoverage":57.19225311279297,"muaccoveragestate":43.76313018798828,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Bahr el Ghazal","county":"Wau","totalpopulation2025":218080,"vita6to59months":25000,"vitapop":41435.2,"vitacoverage":60.33481216430664,"vitacoveragestate":69.87030792236328,"vitacoverageoverall":61.38254928588867,"deworm12to59months":23000,"dewormpop":37080.8,"dewormcoverage":62.02641677856445,"dewormcoveragestate":71.91973114013672,"dewormcoverageoverall":59.03193664550781,"muac6to59months":15000,"muaccoverage":36.20295715332031,"muaccoveragestate":43.76313018798828,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Equatoria","county":"Ezo","totalpopulation2025":110756,"vita6to59months":20000,"vitapop":21043.64,"vitacoverage":95.0406265258789,"vitacoveragestate":55.795555114746094,"vitacoverageoverall":61.38254928588867,"deworm12to59months":19000,"dewormpop":18833.52,"dewormcoverage":100.88398742675781,"dewormcoveragestate":58.85961151123047,"dewormcoverageoverall":59.03193664550781,"muac6to59months":13000,"muaccoverage":61.776100158691406,"muaccoveragestate":34.332305908203125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Equatoria","county":"Ibba","totalpopulation2025":66804,"vita6to59months":10000,"vitapop":12692.76,"vitacoverage":78.78601837158203,"vitacoveragestate":55.795555114746094,"vitacoverageoverall":61.38254928588867,"deworm12to59months":9000,"dewormpop":11356.68,"dewormcoverage":79.24800872802734,"dewormcoveragestate":58.85961151123047,"dewormcoverageoverall":59.03193664550781,"muac6to59months":6000,"muaccoverage":47.27101135253906,"muaccoveragestate":34.332305908203125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Equatoria","county":"Maridi","totalpopulation2025":117281,"vita6to59months":20000,"vitapop":22283.39,"vitacoverage":89.75330352783203,"vitacoveragestate":55.795555114746094,"vitacoverageoverall":61.38254928588867,"deworm12to59months":19000,"dewormpop":19938.77,"dewormcoverage":95.29175567626953,"dewormcoveragestate":58.85961151123047,"dewormcoverageoverall":59.03193664550781,"muac6to59months":13000,"muaccoverage":58.33878707885742,"muaccoveragestate":34.332305908203125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Equatoria","county":"Mundri East","totalpopulation2025":82823,"vita6to59months":13000,"vitapop":15736.37,"vitacoverage":82.61053466796875,"vitacoveragestate":55.795555114746094,"vitacoverageoverall":61.38254928588867,"deworm12to59months":12000,"dewormpop":14081.93,"dewormcoverage":85.21588897705078,"dewormcoveragestate":58.85961151123047,"dewormcoverageoverall":59.03193664550781,"muac6to59months":9000,"muaccoverage":57.19225311279297,"muaccoveragestate":34.332305908203125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Equatoria","county":"Mundri West","totalpopulation2025":89055,"vita6to59months":15000,"vitapop":16920.45,"vitacoverage":88.64994049072266,"vitacoveragestate":55.795555114746094,"vitacoverageoverall":61.38254928588867,"deworm12to59months":14000,"dewormpop":15139.35,"dewormcoverage":92.47425842285156,"dewormcoveragestate":58.85961151123047,"dewormcoverageoverall":59.03193664550781,"muac6to59months":10000,"muaccoverage":59.10000228881836,"muaccoveragestate":34.332305908203125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Equatoria","county":"Mvolo","totalpopulation2025":76536,"vita6to59months":13000,"vitapop":14541.84,"vitacoverage":89.39739227294922,"vitacoveragestate":55.795555114746094,"vitacoverageoverall":61.38254928588867,"deworm12to59months":12000,"dewormpop":13011.12,"dewormcoverage":92.22892761230469,"dewormcoveragestate":58.85961151123047,"dewormcoverageoverall":59.03193664550781,"muac6to59months":8000,"muaccoverage":55.01431655883789,"muaccoveragestate":34.332305908203125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Equatoria","county":"Nagero","totalpopulation2025":30927,"vita6to59months":5000,"vitapop":5876.13,"vitacoverage":85.08993530273438,"vitacoveragestate":55.795555114746094,"vitacoverageoverall":61.38254928588867,"deworm12to59months":4500,"dewormpop":5257.59,"dewormcoverage":85.59056854248047,"dewormcoveragestate":58.85961151123047,"dewormcoverageoverall":59.03193664550781,"muac6to59months":3000,"muaccoverage":51.053749084472656,"muaccoveragestate":34.332305908203125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Equatoria","county":"Nzara","totalpopulation2025":94551,"vita6to59months":17000,"vitapop":17964.69,"vitacoverage":94.62999725341797,"vitacoveragestate":55.795555114746094,"vitacoverageoverall":61.38254928588867,"deworm12to59months":16000,"dewormpop":16023.67,"dewormcoverage":99.8522720336914,"dewormcoveragestate":58.85961151123047,"dewormcoverageoverall":59.03193664550781,"muac6to59months":10000,"muaccoverage":55.6644401550293,"muaccoveragestate":34.332305908203125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Equatoria","county":"Tambura","totalpopulation2025":60840,"vita6to59months":10000,"vitapop":11559.6,"vitacoverage":86.50818634033203,"vitacoveragestate":55.795555114746094,"vitacoverageoverall":61.38254928588867,"deworm12to59months":9000,"dewormpop":10344.4,"dewormcoverage":86.99972534179688,"dewormcoveragestate":58.85961151123047,"dewormcoverageoverall":59.03193664550781,"muac6to59months":6000,"muaccoverage":51.90492248535156,"muaccoveragestate":34.332305908203125,"muaccoverageoverall":32.937339782714844},
+            {"state":"Western Equatoria","county":"Yambio","totalpopulation2025":218080,"vita6to59months":25000,"vitapop":41435.2,"vitacoverage":60.33481216430664,"vitacoveragestate":55.795555114746094,"vitacoverageoverall":61.38254928588867,"deworm12to59months":23000,"dewormpop":37080.8,"dewormcoverage":62.02641677856445,"dewormcoveragestate":58.85961151123047,"dewormcoverageoverall":59.03193664550781,"muac6to59months":15000,"muaccoverage":36.20295715332031,"muaccoveragestate":34.332305908203125,"muaccoverageoverall":32.937339782714844}
+        ];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Populate Overall Stats ---
+            if (campaignData.length > 0) {
+                const firstRow = campaignData[0];
+                document.getElementById('overall-vita').textContent = `${parseFloat(firstRow.vitacoverageoverall).toFixed(1)}%`;
+                document.getElementById('overall-deworm').textContent = `${parseFloat(firstRow.dewormcoverageoverall).toFixed(1)}%`;
+                document.getElementById('overall-muac').textContent = `${parseFloat(firstRow.muaccoverageoverall).toFixed(1)}%`;
+            }
 
-    const muacData = [
-      { county: "Juba", coverage: 78, state: 80 },
-      { county: "Bor", coverage: 55, state: 60 },
-      { county: "Wau", coverage: 30, state: 35 }
-    ];
+            // --- Sort data by state and county ---
+            campaignData.sort((a, b) => {
+                if (a.state < b.state) return -1;
+                if (a.state > b.state) return 1;
+                if (a.county < b.county) return -1;
+                if (a.county > b.county) return 1;
+                return 0;
+            });
 
-    document.getElementById("vitacoverageoverall").textContent = "74%";
-    document.getElementById("dewormcoverageoverall").textContent = "68%";
-    document.getElementById("muaccoverageoverall").textContent = "58%";
+            // --- Populate Tables ---
+            populateTable('vita-table', campaignData, ['state', 'county', 'vita6to59months', 'vitapop', 'vitacoverage', 'vitacoveragestate']);
+            populateTable('deworm-table', campaignData, ['state', 'county', 'deworm12to59months', 'dewormpop', 'dewormcoverage', 'dewormcoveragestate']);
+            populateTable('muac-table', campaignData, ['state', 'county', 'muac6to59months', 'vitapop', 'muaccoverage', 'muaccoveragestate']);
+        });
 
-    function renderTable(data, tableId) {
-      const tbody = document.querySelector(`#${tableId} tbody`);
-      data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${row.county}</td><td>${row.coverage}%</td><td>${row.state}%</td>`;
-        tbody.appendChild(tr);
-      });
-    }
+        function getHeatmapColor(value) {
+            const numValue = parseFloat(value);
+            if (isNaN(numValue)) return '#f1f5f9'; // Default light gray for non-numbers
+            if (numValue < 50) return '#fecaca'; // Light Red
+            if (numValue >= 50 && numValue < 80) return '#fef08a'; // Light Yellow
+            if (numValue >= 80) return '#bbf7d0'; // Light Green
+        }
 
-    function renderHeatmap(data, canvasId) {
-      const canvas = document.getElementById(canvasId);
-      const ctx = canvas.getContext("2d");
-      const barWidth = canvas.width / data.length;
-      data.forEach((row, i) => {
-        let color = "red";
-        if (row.coverage >= 80) color = "green";
-        else if (row.coverage >= 50) color = "yellow";
-        ctx.fillStyle = color;
-        ctx.fillRect(i * barWidth, canvas.height - row.coverage * 3, barWidth - 2, row.coverage * 3);
-        ctx.fillStyle = "#000";
-        ctx.fillText(row.county, i * barWidth + 5, canvas.height - 5);
-      });
-    }
+        function populateTable(tableId, data, columns) {
+            const tableBody = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+            if (!tableBody) return;
 
-    renderTable(vitaminData, "vitaminTable");
-    renderTable(dewormData, "dewormTable");
-    renderTable(muacData, "muacTable");
+            let lastState = '';
 
-    renderHeatmap(vitaminData, "vitaminCanvas");
-    renderHeatmap(dewormData, "dewormCanvas");
-    renderHeatmap(muacData, "muacCanvas");
-  </script>
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b';
 
+                // State Column (with rowspan for grouping)
+                const stateCell = document.createElement('td');
+                if (row[columns[0]] !== lastState) {
+                    const stateGroup = data.filter(d => d[columns[0]] === row[columns[0]]);
+                    stateCell.rowSpan = stateGroup.length;
+                    stateCell.textContent = row[columns[0]];
+                    stateCell.className = 'font-semibold align-top pt-2';
+                    tr.appendChild(stateCell);
+                    lastState = row[columns[0]];
+                }
+                
+                // Other columns
+                // County
+                const countyCell = document.createElement('td');
+                countyCell.textContent = row[columns[1]];
+                tr.appendChild(countyCell);
+                
+                // Reached
+                const reachedCell = document.createElement('td');
+                reachedCell.textContent = parseInt(row[columns[2]]).toLocaleString();
+                reachedCell.className = 'text-right';
+                tr.appendChild(reachedCell);
+
+                // Target
+                const targetCell = document.createElement('td');
+                targetCell.textContent = parseInt(row[columns[3]]).toLocaleString();
+                targetCell.className = 'text-right';
+                tr.appendChild(targetCell);
+
+                // County Coverage (Heatmap)
+                const countyCoverageCell = document.createElement('td');
+                countyCoverageCell.textContent = `${parseFloat(row[columns[4]]).toFixed(1)}%`;
+                countyCoverageCell.style.backgroundColor = getHeatmapColor(row[columns[4]]);
+                countyCoverageCell.className = 'text-right font-medium';
+                tr.appendChild(countyCoverageCell);
+
+                // State Coverage (Heatmap)
+                const stateCoverageCell = document.createElement('td');
+                stateCoverageCell.textContent = `${parseFloat(row[columns[5]]).toFixed(1)}%`;
+                stateCoverageCell.style.backgroundColor = getHeatmapColor(row[columns[5]]);
+                stateCoverageCell.className = 'text-right font-medium';
+                tr.appendChild(stateCoverageCell);
+
+                tableBody.appendChild(tr);
+            });
+        }
+
+    </script>
 </body>
 </html>
